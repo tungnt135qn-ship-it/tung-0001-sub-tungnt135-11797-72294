@@ -1,0 +1,39 @@
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { CustomCursor } from "@/components/CustomCursor";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Investment from "./pages/Investment";
+import PhaseDetail from "./pages/PhaseDetail";
+import MembershipShop from "./pages/MembershipShop";
+import TierDetail from "./pages/TierDetail";
+import NotFound from "./pages/NotFound";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <CustomCursor />
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/investment" element={<Investment />} />
+          <Route path="/phase/:phaseId" element={<PhaseDetail />} />
+          <Route path="/membership" element={<MembershipShop />} />
+          <Route path="/tier/:tierId" element={<TierDetail />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
+
+export default App;
