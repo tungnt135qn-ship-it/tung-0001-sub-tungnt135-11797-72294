@@ -10,6 +10,8 @@ import Investment from "./pages/Investment";
 import PhaseDetail from "./pages/PhaseDetail";
 import MembershipShop from "./pages/MembershipShop";
 import TierDetail from "./pages/TierDetail";
+import NFTMarket from "./pages/NFTMarket";
+import NFTDetail from "./pages/NFTDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/phase/:phaseId" element={<PhaseDetail />} />
           <Route path="/membership" element={<MembershipShop />} />
           <Route path="/tier/:tierId" element={<TierDetail />} />
+          <Route path="/nft-market" element={<NFTMarket />} />
+          <Route path="/nft/:id" element={<NFTDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

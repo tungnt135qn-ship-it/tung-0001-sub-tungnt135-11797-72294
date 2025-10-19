@@ -48,7 +48,7 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
             <a href="/membership" className="text-foreground/80 hover:text-primary transition-colors">
               Mua hạng
             </a>
-            <a href="#nft" className="text-foreground/80 hover:text-primary transition-colors">
+            <a href="/nft-market" className="text-foreground/80 hover:text-primary transition-colors">
               NFT Market
             </a>
             <a href="#missions" className="text-foreground/80 hover:text-primary transition-colors">
@@ -107,7 +107,7 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
               <a href="/membership" className="text-foreground/80 hover:text-primary transition-colors py-2">
                 Mua hạng
               </a>
-              <a href="#nft" className="text-foreground/80 hover:text-primary transition-colors py-2">
+              <a href="/nft-market" className="text-foreground/80 hover:text-primary transition-colors py-2">
                 NFT Market
               </a>
               <a href="#missions" className="text-foreground/80 hover:text-primary transition-colors py-2">
