@@ -1,8 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { Header } from "@/components/Header";
 import { NFTMarketHeader } from "@/components/nft/NFTMarketHeader";
 import { NFTFilters, NFTFiltersState } from "@/components/nft/NFTFilters";
 import { NFTGrid } from "@/components/nft/NFTGrid";
 import { NFT } from "@/components/nft/NFTCard";
+import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
 import nftBoxImage from "@/assets/nft-box.jpg";
 import tierGoldImage from "@/assets/tier-gold.jpg";
 import tierPlatinumImage from "@/assets/tier-platinum.jpg";
@@ -20,7 +23,6 @@ const sampleNFTs: NFT[] = [
     rarity: "Legendary",
     type: "tier",
     seller: "0x7a9f...3d2c",
-    likes: 245,
   },
   {
     id: "2",
@@ -30,7 +32,6 @@ const sampleNFTs: NFT[] = [
     rarity: "Mythic",
     type: "tier",
     seller: "0x4b8c...9e1f",
-    likes: 567,
   },
   {
     id: "3",
@@ -40,7 +41,6 @@ const sampleNFTs: NFT[] = [
     rarity: "Epic",
     type: "tier",
     seller: "0x2f5d...7a8b",
-    likes: 123,
   },
   {
     id: "4",
@@ -50,7 +50,6 @@ const sampleNFTs: NFT[] = [
     rarity: "Rare",
     type: "tier",
     seller: "0x8c3d...4f2a",
-    likes: 89,
   },
   // Other NFTs
   {
@@ -61,7 +60,11 @@ const sampleNFTs: NFT[] = [
     rarity: "Divine",
     type: "other",
     seller: "0x1234...5678",
-    likes: 892,
+    totalValue: "250 ETH",
+    pricePerShare: "2.5 ETH",
+    sharesSold: 67,
+    totalShares: 100,
+    purchases: 892,
   },
   {
     id: "6",
@@ -71,7 +74,11 @@ const sampleNFTs: NFT[] = [
     rarity: "Legendary",
     type: "other",
     seller: "0xabcd...efgh",
-    likes: 456,
+    totalValue: "180 ETH",
+    pricePerShare: "1.8 ETH",
+    sharesSold: 45,
+    totalShares: 100,
+    purchases: 456,
   },
   {
     id: "7",
@@ -81,7 +88,11 @@ const sampleNFTs: NFT[] = [
     rarity: "Mythic",
     type: "other",
     seller: "0x9876...5432",
-    likes: 678,
+    totalValue: "320 ETH",
+    pricePerShare: "3.2 ETH",
+    sharesSold: 82,
+    totalShares: 100,
+    purchases: 678,
   },
   {
     id: "8",
@@ -91,7 +102,11 @@ const sampleNFTs: NFT[] = [
     rarity: "Epic",
     type: "other",
     seller: "0x3456...7890",
-    likes: 234,
+    totalValue: "120 ETH",
+    pricePerShare: "1.2 ETH",
+    sharesSold: 23,
+    totalShares: 100,
+    purchases: 234,
   },
   {
     id: "9",
@@ -101,7 +116,11 @@ const sampleNFTs: NFT[] = [
     rarity: "Rare",
     type: "other",
     seller: "0x5678...9012",
-    likes: 167,
+    totalValue: "90 ETH",
+    pricePerShare: "0.9 ETH",
+    sharesSold: 15,
+    totalShares: 100,
+    purchases: 167,
   },
   {
     id: "10",
@@ -111,16 +130,35 @@ const sampleNFTs: NFT[] = [
     rarity: "Common",
     type: "other",
     seller: "0x7890...1234",
-    likes: 98,
+    totalValue: "50 ETH",
+    pricePerShare: "0.5 ETH",
+    sharesSold: 8,
+    totalShares: 100,
+    purchases: 98,
   },
 ];
 
 export default function NFTMarket() {
+  const [session, setSession] = useState<Session | null>(null);
   const [filters, setFilters] = useState<NFTFiltersState>({
     rarity: [],
     priceRange: [0, 10],
     type: "all",
   });
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const filteredNFTs = useMemo(() => {
     return sampleNFTs.filter((nft) => {
@@ -151,29 +189,38 @@ export default function NFTMarket() {
   const otherNFTs = filteredNFTs.filter((nft) => nft.type === "other");
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
-      <div className="container mx-auto px-4">
-        <NFTMarketHeader />
-        
-        <NFTFilters filters={filters} onFiltersChange={setFilters} />
+    <>
+      <Header session={session} onSignOut={() => setSession(null)} />
+      <div className="min-h-screen pt-20 pb-12">
+        <div className="container mx-auto px-4">
+          <NFTMarketHeader />
+          
+          <NFTFilters filters={filters} onFiltersChange={setFilters} />
 
-        {filters.type !== "other" && tierNFTs.length > 0 && (
-          <NFTGrid nfts={tierNFTs} title="NFT Hạng" />
-        )}
+          {filters.type !== "other" && tierNFTs.length > 0 && (
+            <NFTGrid nfts={tierNFTs} title="NFT Hạng" initialCount={3} />
+          )}
 
-        {filters.type !== "tier" && otherNFTs.length > 0 && (
-          <NFTGrid nfts={otherNFTs} title="NFT Khác" />
-        )}
+          {filters.type !== "tier" && otherNFTs.length > 0 && (
+            <>
+              <h2 className="text-2xl font-bold mb-6 gradient-text">NFT Khác</h2>
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold mb-4">Đang bán</h3>
+                <NFTGrid nfts={otherNFTs} title="" initialCount={6} />
+              </div>
+            </>
+          )}
 
-        {filteredNFTs.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-xl text-muted-foreground">
-              Không tìm thấy NFT phù hợp với bộ lọc
-            </p>
-          </div>
-        )}
+          {filteredNFTs.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-xl text-muted-foreground">
+                Không tìm thấy NFT phù hợp với bộ lọc
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

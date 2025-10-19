@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Eye, Heart } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { ShoppingCart, Eye, Heart, ShoppingBag } from "lucide-react";
 
 export interface NFT {
   id: string;
@@ -12,6 +13,12 @@ export interface NFT {
   type: "tier" | "other";
   seller?: string;
   likes?: number;
+  // For other NFTs
+  totalValue?: string;
+  pricePerShare?: string;
+  sharesSold?: number;
+  totalShares?: number;
+  purchases?: number;
 }
 
 interface NFTCardProps {
@@ -29,6 +36,10 @@ const rarityColors = {
 
 export const NFTCard = ({ nft }: NFTCardProps) => {
   const navigate = useNavigate();
+  const isOtherNFT = nft.type === "other";
+  const progressPercentage = isOtherNFT && nft.sharesSold && nft.totalShares 
+    ? (nft.sharesSold / nft.totalShares) * 100 
+    : 0;
 
   return (
     <div className="glass rounded-xl overflow-hidden hover:scale-105 transition-all group cursor-pointer">
@@ -53,13 +64,17 @@ export const NFTCard = ({ nft }: NFTCardProps) => {
           {nft.rarity}
         </Badge>
 
-        {/* Like Button */}
+        {/* Like/Purchase Button */}
         <Button
           variant="ghost"
           size="icon"
           className="absolute top-4 left-4 bg-background/80 backdrop-blur-sm hover:bg-background"
         >
-          <Heart className="w-4 h-4" />
+          {isOtherNFT ? (
+            <ShoppingBag className="w-4 h-4" />
+          ) : (
+            <Heart className="w-4 h-4" />
+          )}
         </Button>
       </div>
 
@@ -74,18 +89,49 @@ export const NFTCard = ({ nft }: NFTCardProps) => {
           </div>
         )}
 
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-xs text-muted-foreground">Giá</div>
-            <div className="text-xl font-bold text-primary">{nft.price}</div>
-          </div>
-          {nft.likes !== undefined && (
-            <div className="text-right">
-              <div className="text-xs text-muted-foreground">Lượt thích</div>
-              <div className="text-sm font-semibold">{nft.likes}</div>
+        {isOtherNFT ? (
+          // Other NFT specific info
+          <>
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Giá trị tổng</span>
+                <span className="font-bold text-primary">{nft.totalValue}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Giá/cổ phần</span>
+                <span className="font-semibold">{nft.pricePerShare}</span>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Tiến trình bán</span>
+                  <span>{nft.sharesSold}/{nft.totalShares} cổ phần</span>
+                </div>
+                <Progress value={progressPercentage} className="h-2" />
+                <div className="text-xs text-primary font-semibold">
+                  {progressPercentage.toFixed(1)}% đã bán
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                <div className="text-xs text-muted-foreground">Lượt mua</div>
+                <div className="text-sm font-semibold flex items-center gap-1">
+                  <ShoppingBag className="w-3 h-3" />
+                  {nft.purchases}
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          // Tier NFT info
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="text-xs text-muted-foreground">Giá</div>
+              <div className="text-xl font-bold text-primary">{nft.price}</div>
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-2">
@@ -98,7 +144,7 @@ export const NFTCard = ({ nft }: NFTCardProps) => {
             }}
           >
             <ShoppingCart className="w-4 h-4" />
-            Mua ngay
+            {isOtherNFT ? "Mua cổ phần" : "Mua ngay"}
           </Button>
           <Button
             variant="outline"

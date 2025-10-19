@@ -1,4 +1,34 @@
 import { TrendingUp, Users, DollarSign, Package } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const volumeData = [
+  { name: "T1", value: 4.2 },
+  { name: "T2", value: 5.8 },
+  { name: "T3", value: 6.5 },
+  { name: "T4", value: 7.2 },
+  { name: "T5", value: 8.5 },
+  { name: "T6", value: 9.1 },
+];
+
+const priceData = [
+  { name: "T1", value: 0.65 },
+  { name: "T2", value: 0.72 },
+  { name: "T3", value: 0.68 },
+  { name: "T4", value: 0.78 },
+  { name: "T5", value: 0.82 },
+  { name: "T6", value: 0.85 },
+];
 
 export const NFTMarketHeader = () => {
   const stats = [
@@ -16,20 +46,6 @@ export const NFTMarketHeader = () => {
       trend: "+8.3%",
       trendUp: true,
     },
-    {
-      icon: DollarSign,
-      label: "Khối lượng giao dịch",
-      value: "$8.5M",
-      trend: "+15.7%",
-      trendUp: true,
-    },
-    {
-      icon: TrendingUp,
-      label: "Giá sàn trung bình",
-      value: "0.85 ETH",
-      trend: "+5.2%",
-      trendUp: true,
-    },
   ];
 
   return (
@@ -43,7 +59,7 @@ export const NFTMarketHeader = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat, index) => (
           <div
             key={stat.label}
@@ -68,6 +84,58 @@ export const NFTMarketHeader = () => {
             <div className="text-sm text-muted-foreground">{stat.label}</div>
           </div>
         ))}
+
+        {/* Volume Chart */}
+        <Card className="glass col-span-1 md:col-span-1 lg:col-span-1">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <DollarSign className="w-5 h-5 text-primary" />
+              </div>
+              <div className="text-sm font-semibold text-green-500">
+                +15.7%
+              </div>
+            </div>
+            <CardTitle className="text-lg">Khối lượng giao dịch</CardTitle>
+            <div className="text-2xl font-bold gradient-text">$8.5M</div>
+          </CardHeader>
+          <CardContent className="pb-2">
+            <ResponsiveContainer width="100%" height={60}>
+              <BarChart data={volumeData}>
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Price Chart */}
+        <Card className="glass col-span-1 md:col-span-1 lg:col-span-1">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <TrendingUp className="w-5 h-5 text-primary" />
+              </div>
+              <div className="text-sm font-semibold text-green-500">
+                +5.2%
+              </div>
+            </div>
+            <CardTitle className="text-lg">Giá sàn TB</CardTitle>
+            <div className="text-2xl font-bold gradient-text">0.85 ETH</div>
+          </CardHeader>
+          <CardContent className="pb-2">
+            <ResponsiveContainer width="100%" height={60}>
+              <LineChart data={priceData}>
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
