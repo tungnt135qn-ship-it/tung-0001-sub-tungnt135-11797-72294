@@ -14,7 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      blockchain_stats: {
+        Row: {
+          circulating_supply: number
+          current_phase: number | null
+          id: string
+          total_can_supply: number
+          total_holders: number | null
+          total_transactions: number | null
+          total_value_locked: number | null
+          updated_at: string
+        }
+        Insert: {
+          circulating_supply: number
+          current_phase?: number | null
+          id?: string
+          total_can_supply: number
+          total_holders?: number | null
+          total_transactions?: number | null
+          total_value_locked?: number | null
+          updated_at?: string
+        }
+        Update: {
+          circulating_supply?: number
+          current_phase?: number | null
+          id?: string
+          total_can_supply?: number
+          total_holders?: number | null
+          total_transactions?: number | null
+          total_value_locked?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      news_events: {
+        Row: {
+          created_at: string
+          description: string
+          event_date: string | null
+          event_type: string
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_date?: string | null
+          event_type: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_date?: string | null
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          title?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          can_balance: number
+          created_at: string
+          id: string
+          membership_tier: string | null
+          total_invested: number | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          can_balance?: number
+          created_at?: string
+          id: string
+          membership_tier?: string | null
+          total_invested?: number | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          can_balance?: number
+          created_at?: string
+          id?: string
+          membership_tier?: string | null
+          total_invested?: number | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          phase: number
+          price_per_token: number
+          status: string
+          total_value: number
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          phase: number
+          price_per_token: number
+          status?: string
+          total_value: number
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          phase?: number
+          price_per_token?: number
+          status?: string
+          total_value?: number
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
