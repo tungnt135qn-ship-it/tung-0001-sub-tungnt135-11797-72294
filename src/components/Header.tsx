@@ -51,16 +51,25 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
             <a href="/nft-market" className="text-foreground/80 hover:text-primary transition-colors">
               NFT Market
             </a>
-            <a href="#missions" className="text-foreground/80 hover:text-primary transition-colors">
+            <a href="/missions" className="text-foreground/80 hover:text-primary transition-colors">
               Nhiệm vụ
             </a>
+            {session && (
+              <a href="/account" className="text-foreground/80 hover:text-primary transition-colors">
+                Tài khoản
+              </a>
+            )}
           </nav>
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
             {session ? (
               <>
-                <Button variant="gradient" className="hidden md:flex">
+                <Button 
+                  variant="gradient" 
+                  className="hidden md:flex"
+                  onClick={() => navigate("/wallet")}
+                >
                   <Wallet className="w-4 h-4 mr-2" />
                   Kết nối ví
                 </Button>
@@ -110,12 +119,21 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
               <a href="/nft-market" className="text-foreground/80 hover:text-primary transition-colors py-2">
                 NFT Market
               </a>
-              <a href="#missions" className="text-foreground/80 hover:text-primary transition-colors py-2">
+              <a href="/missions" className="text-foreground/80 hover:text-primary transition-colors py-2">
                 Nhiệm vụ
               </a>
+              {session && (
+                <a href="/account" className="text-foreground/80 hover:text-primary transition-colors py-2">
+                  Tài khoản
+                </a>
+              )}
               {session ? (
                 <>
-                  <Button variant="gradient" className="w-full mt-2">
+                  <Button 
+                    variant="gradient" 
+                    className="w-full mt-2"
+                    onClick={() => navigate("/wallet")}
+                  >
                     <Wallet className="w-4 h-4 mr-2" />
                     Kết nối ví
                   </Button>
