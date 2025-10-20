@@ -1,7 +1,16 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import type { Session } from "@supabase/supabase-js";
 import {
   ArrowLeft,
   Heart,
@@ -26,7 +35,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardHeader, CardTitle } from "@/components/ui/card";
 import nftBoxImage from "@/assets/nft-box.jpg";
 
 const rarityColors = {
@@ -60,6 +69,27 @@ const performanceData = [
 export default function NFTDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [session, setSession] = useState<Session | null>(null);
+  const [purchaseAmount, setPurchaseAmount] = useState<string>("1");
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   // Check if it's an "other" type NFT (id >= 5)
   const isOtherNFT = parseInt(id || "0") >= 5;
@@ -101,99 +131,145 @@ export default function NFTDetail() {
         date: "2 giờ trước",
       },
       {
-        event: "Sale",
-        price: isOtherNFT ? "2.2 ETH" : "0.75 ETH",
+        event: "Transferred",
         from: "0xabcd...efgh",
         to: "0x1234...5678",
         date: "1 ngày trước",
       },
       {
         event: "Minted",
-        price: "-",
-        from: "Creator",
+        price: isOtherNFT ? "0.1 ETH" : "0.5 ETH",
+        from: "0x0000...0000",
         date: "7 ngày trước",
       },
     ],
   };
 
-  const progressPercentage =
-    (nft.sharesSold / nft.totalShares) * 100;
+  const progressPercentage = (nft.sharesSold / nft.totalShares) * 100;
+
+  const handlePurchase = () => {
+    if (!session) {
+      toast({
+        title: "Cần đăng nhập",
+        description: "Vui lòng đăng nhập để mua NFT",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    if (isOtherNFT) {
+      const shares = parseInt(purchaseAmount) || 1;
+      const totalPrice = (parseFloat(nft.pricePerShare.split(" ")[0]) * shares).toFixed(2);
+      
+      toast({
+        title: "Đang xử lý giao dịch",
+        description: `Đang mua ${shares} cổ phần (${totalPrice} ETH)`,
+      });
+
+      setTimeout(() => {
+        toast({
+          title: "Mua thành công!",
+          description: `Bạn đã mua ${shares} cổ phần của ${nft.name}`,
+        });
+      }, 2000);
+    } else {
+      toast({
+        title: "Đang xử lý giao dịch",
+        description: `Đang mua ${nft.name} với giá ${nft.price}`,
+      });
+
+      setTimeout(() => {
+        toast({
+          title: "Mua thành công!",
+          description: `Bạn đã sở hữu ${nft.name}`,
+        });
+      }, 2000);
+    }
+  };
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
-      <div className="container mx-auto px-4">
-        {/* Back Button */}
+    <div className="min-h-screen bg-background">
+      <Header session={session} onSignOut={handleSignOut} />
+
+      <main className="container mx-auto px-4 pt-24 pb-12">
         <Button
           variant="ghost"
+          className="mb-6"
           onClick={() => navigate("/nft-market")}
-          className="mb-6 gap-2"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 mr-2" />
           Quay lại
         </Button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Image Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* Image */}
           <div className="space-y-4">
-            <div className="glass rounded-2xl overflow-hidden">
+            <div className="relative aspect-square rounded-2xl overflow-hidden glass">
               <img
                 src={nft.image}
                 alt={nft.name}
-                className="w-full aspect-square object-cover"
+                className="w-full h-full object-cover"
               />
+              <div className="absolute top-4 right-4 flex gap-2">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="rounded-full glass backdrop-blur-xl"
+                >
+                  <Heart className="w-5 h-5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="rounded-full glass backdrop-blur-xl"
+                >
+                  <Share2 className="w-5 h-5" />
+                </Button>
+              </div>
+              {!isOtherNFT && (
+                <div className="absolute top-4 left-4">
+                  <Badge className="bg-primary/90 text-white">
+                    🏆 Bán 1 lần
+                  </Badge>
+                </div>
+              )}
             </div>
 
             {/* Stats */}
-            <div className="glass rounded-xl p-4 grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-primary" />
-                <div>
-                  <div className="text-sm text-muted-foreground">
-                    {isOtherNFT ? "Lượt mua" : "Lượt thích"}
-                  </div>
-                  <div className="font-bold">{nft.likes}</div>
-                </div>
+            <div className="glass rounded-xl p-4 grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{nft.views}</div>
+                <div className="text-xs text-muted-foreground">Lượt xem</div>
               </div>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-primary" />
-                <div>
-                  <div className="text-sm text-muted-foreground">Lượt xem</div>
-                  <div className="font-bold">{nft.views}</div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{nft.likes}</div>
+                <div className="text-xs text-muted-foreground">Yêu thích</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {isOtherNFT ? nft.purchases : "1"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {isOtherNFT ? "Lượt mua" : "Sở hữu"}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Info Section */}
+          {/* Details */}
           <div className="space-y-6">
-            {/* Title & Actions */}
             <div>
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h1 className="text-4xl font-bold mb-2">{nft.name}</h1>
-                  <Badge
-                    className={
-                      rarityColors[nft.rarity as keyof typeof rarityColors]
-                    }
-                  >
-                    {nft.rarity}
-                  </Badge>
-                  {!isOtherNFT && (
-                    <Badge className="ml-2 bg-primary/20 text-primary">
-                      Bán 1 lần
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="icon">
-                    <Heart className="w-4 h-4" />
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <Share2 className="w-4 h-4" />
-                  </Button>
-                </div>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-4xl font-bold">{nft.name}</h1>
+                <Badge
+                  className={
+                    rarityColors[nft.rarity as keyof typeof rarityColors]
+                  }
+                >
+                  {nft.rarity}
+                </Badge>
               </div>
-
               <p className="text-muted-foreground">{nft.description}</p>
             </div>
 
@@ -260,11 +336,30 @@ export default function NFTDetail() {
                     </div>
                   </div>
 
+                  {/* Purchase form for shares */}
+                  <div className="mb-4">
+                    <Label htmlFor="shares">Số cổ phần muốn mua</Label>
+                    <Input
+                      id="shares"
+                      type="number"
+                      min="1"
+                      max={nft.totalShares - nft.sharesSold}
+                      value={purchaseAmount}
+                      onChange={(e) => setPurchaseAmount(e.target.value)}
+                      className="mt-2"
+                      placeholder="1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Tổng: {(parseFloat(nft.pricePerShare.split(" ")[0]) * (parseInt(purchaseAmount) || 1)).toFixed(2)} ETH
+                    </p>
+                  </div>
+
                   <div className="flex gap-3">
                     <Button
                       variant="gradient"
                       size="lg"
                       className="flex-1 gap-2"
+                      onClick={handlePurchase}
                     >
                       <ShoppingBag className="w-5 h-5" />
                       Mua cổ phần
@@ -298,6 +393,7 @@ export default function NFTDetail() {
                       variant="gradient"
                       size="lg"
                       className="flex-1 gap-2"
+                      onClick={handlePurchase}
                     >
                       <ShoppingCart className="w-5 h-5" />
                       Mua ngay
@@ -348,7 +444,7 @@ export default function NFTDetail() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-semibold">{item.price}</div>
+                      <div className="font-semibold">{item.price || "-"}</div>
                       <div className="text-xs text-muted-foreground">
                         {item.date}
                       </div>
@@ -360,208 +456,190 @@ export default function NFTDetail() {
           </div>
         </div>
 
-        {/* Financial Reports - Only for Other NFTs */}
+        {/* Financial Report for Other NFTs */}
         {isOtherNFT && (
-          <div className="mt-12">
-            <h2 className="text-3xl font-bold mb-6 gradient-text">
-              Báo cáo tài chính
-            </h2>
+          <div className="space-y-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-2 gradient-text">
+                Báo cáo tài chính
+              </h2>
+              <p className="text-muted-foreground">
+                Thông tin chi tiết về doanh thu và lợi nhuận của NFT
+              </p>
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              {/* Key Metrics */}
+            {/* Key Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <Card className="glass">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-primary" />
-                    Doanh thu TB/tháng
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold gradient-text">
-                    $56.8K
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <DollarSign className="w-8 h-8 text-primary" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Doanh thu TB
+                      </p>
+                      <p className="text-2xl font-bold">$55.2K</p>
+                    </div>
                   </div>
-                  <div className="text-sm text-green-500 flex items-center gap-1 mt-1">
-                    <TrendingUp className="w-4 h-4" />
-                    +18.5% so với tháng trước
-                  </div>
+                  <p className="text-xs text-primary flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    +12.5% từ tháng trước
+                  </p>
                 </CardContent>
               </Card>
 
               <Card className="glass">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    ROI TB
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold gradient-text">
-                    16.7%
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <TrendingUp className="w-8 h-8 text-secondary" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Lợi nhuận TB</p>
+                      <p className="text-2xl font-bold">$19.5K</p>
+                    </div>
                   </div>
-                  <div className="text-sm text-green-500 flex items-center gap-1 mt-1">
-                    <TrendingUp className="w-4 h-4" />
-                    +2.3% so với kỳ trước
-                  </div>
+                  <p className="text-xs text-secondary flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    +18.3% từ tháng trước
+                  </p>
                 </CardContent>
               </Card>
 
               <Card className="glass">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingDown className="w-5 h-5 text-primary" />
-                    Chi phí TB/tháng
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold gradient-text">
-                    $35.7K
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <TrendingDown className="w-8 h-8 text-accent" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Chi phí TB</p>
+                      <p className="text-2xl font-bold">$35.7K</p>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    Ổn định trong 6 tháng
+                  <p className="text-xs text-accent flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    +8.2% từ tháng trước
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="glass">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <DollarSign className="w-8 h-8 text-primary" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">ROI TB</p>
+                      <p className="text-2xl font-bold">16.7%</p>
+                    </div>
                   </div>
+                  <p className="text-xs text-primary flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    +2.1% từ tháng trước
+                  </p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Revenue Chart */}
-            <Card className="glass mb-6">
-              <CardHeader>
-                <CardTitle>Doanh thu & Lợi nhuận (6 tháng gần nhất)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Legend />
-                    <Bar
-                      dataKey="revenue"
-                      fill="hsl(var(--primary))"
-                      name="Doanh thu"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="expenses"
-                      fill="hsl(var(--muted))"
-                      name="Chi phí"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar
-                      dataKey="profit"
-                      fill="hsl(var(--chart-2))"
-                      name="Lợi nhuận"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="glass">
+                <CardHeader>
+                  <CardTitle>Doanh thu & Lợi nhuận (6 tháng)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={revenueData}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--background))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="revenue" fill="hsl(var(--primary))" name="Doanh thu" />
+                      <Bar dataKey="profit" fill="hsl(var(--secondary))" name="Lợi nhuận" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-            {/* Performance Chart */}
+              <Card className="glass">
+                <CardHeader>
+                  <CardTitle>ROI theo thời gian (%)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={performanceData}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--background))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="roi"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={3}
+                        name="ROI %"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Financial Timeline */}
             <Card className="glass">
               <CardHeader>
-                <CardTitle>Hiệu suất ROI theo tháng</CardTitle>
+                <CardTitle>Dòng thời gian tài chính</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={performanceData}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--background))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="roi"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={3}
-                      name="ROI (%)"
-                      dot={{ fill: "hsl(var(--primary))", r: 5 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div className="space-y-6">
+                  {revenueData.reverse().map((data, index) => (
+                    <div key={index} className="relative pl-8 pb-6 border-l-2 border-primary/30 last:pb-0">
+                      <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-primary"></div>
+                      <div className="glass rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-bold">Tháng {data.month}</h4>
+                          <Badge variant="outline">Đã hoàn thành</Badge>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Doanh thu</p>
+                            <p className="font-bold text-primary">
+                              ${data.revenue.toLocaleString()}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Chi phí</p>
+                            <p className="font-bold text-accent">
+                              ${data.expenses.toLocaleString()}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Lợi nhuận</p>
+                            <p className="font-bold text-secondary">
+                              ${data.profit.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
-
-            {/* Timeline */}
-            <div className="glass rounded-xl p-6 mt-6">
-              <h3 className="text-xl font-bold mb-6">
-                Dòng thời gian tài chính
-              </h3>
-              <div className="space-y-4">
-                {[
-                  {
-                    month: "Tháng 6/2025",
-                    event: "Doanh thu kỷ lục",
-                    detail: "$67K doanh thu, ROI 21.3%",
-                    positive: true,
-                  },
-                  {
-                    month: "Tháng 5/2025",
-                    event: "Tăng trưởng ổn định",
-                    detail: "$58K doanh thu, ROI 17.6%",
-                    positive: true,
-                  },
-                  {
-                    month: "Tháng 4/2025",
-                    event: "Bùng nổ lợi nhuận",
-                    detail: "$61K doanh thu, ROI 18.9%",
-                    positive: true,
-                  },
-                  {
-                    month: "Tháng 3/2025",
-                    event: "Tăng trưởng đều",
-                    detail: "$48K doanh thu, ROI 14.2%",
-                    positive: true,
-                  },
-                ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start gap-4 pb-4 border-b border-border/50 last:border-0"
-                  >
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        item.positive
-                          ? "bg-green-500/20 text-green-500"
-                          : "bg-red-500/20 text-red-500"
-                      }`}
-                    >
-                      {item.positive ? (
-                        <TrendingUp className="w-5 h-5" />
-                      ) : (
-                        <TrendingDown className="w-5 h-5" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-xs text-muted-foreground mb-1">
-                        {item.month}
-                      </div>
-                      <div className="font-semibold mb-1">{item.event}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {item.detail}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
-      </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }

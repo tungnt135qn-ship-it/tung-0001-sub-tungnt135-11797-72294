@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import { 
   TrendingUp, 
   Users, 
@@ -129,6 +130,7 @@ const phasesData = [
 const PhaseDetail = () => {
   const navigate = useNavigate();
   const { phaseId } = useParams();
+  const { toast } = useToast();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [investAmount, setInvestAmount] = useState<string>("100");
@@ -478,6 +480,21 @@ const PhaseDetail = () => {
                     size="lg"
                     variant={phase.status === "active" ? "gradient" : "outline"}
                     disabled={phase.status !== "active"}
+                    onClick={() => {
+                      if (phase.status === "active") {
+                        toast({
+                          title: "Đang xử lý giao dịch",
+                          description: `Đang thực hiện đầu tư ${investAmount} USD vào ${phase.name}`,
+                        });
+                        
+                        setTimeout(() => {
+                          toast({
+                            title: "Đầu tư thành công!",
+                            description: `Bạn đã nhận được ${totalTokens} CAN tokens (bao gồm ${bonusTokens} bonus)`,
+                          });
+                        }, 2000);
+                      }
+                    }}
                   >
                     {phase.status === "active" ? "Đầu tư ngay" : phase.status === "completed" ? "Đã đóng" : "Sắp mở"}
                   </Button>

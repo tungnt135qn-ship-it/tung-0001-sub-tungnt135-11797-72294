@@ -18,6 +18,7 @@ import AccountManagement from "./pages/AccountManagement";
 import NewsDetail from "./pages/NewsDetail";
 import SellNFT from "./pages/SellNFT";
 import WalletConnect from "./pages/WalletConnect";
+import AboutUs from "./pages/AboutUs";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/sell-nft" element={<SellNFT />} />
           <Route path="/wallet" element={<WalletConnect />} />
+          <Route path="/about" element={<AboutUs />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
