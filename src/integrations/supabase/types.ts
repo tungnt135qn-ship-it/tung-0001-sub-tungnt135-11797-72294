@@ -113,6 +113,90 @@ export type Database = {
         }
         Relationships: []
       }
+      staking_coin: {
+        Row: {
+          amount_staked: number
+          apy: number
+          created_at: string
+          id: string
+          locked_until: string
+          rewards: number
+          staked_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_staked?: number
+          apy?: number
+          created_at?: string
+          id?: string
+          locked_until: string
+          rewards?: number
+          staked_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_staked?: number
+          apy?: number
+          created_at?: string
+          id?: string
+          locked_until?: string
+          rewards?: number
+          staked_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      staking_nft: {
+        Row: {
+          apy: number
+          created_at: string
+          id: string
+          locked_until: string
+          nft_id: string
+          nft_name: string
+          nft_value: number
+          rewards: number
+          staked_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          apy?: number
+          created_at?: string
+          id?: string
+          locked_until: string
+          nft_id: string
+          nft_name: string
+          nft_value?: number
+          rewards?: number
+          staked_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          apy?: number
+          created_at?: string
+          id?: string
+          locked_until?: string
+          nft_id?: string
+          nft_name?: string
+          nft_value?: number
+          rewards?: number
+          staked_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number

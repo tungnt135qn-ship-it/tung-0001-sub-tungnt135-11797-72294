@@ -19,6 +19,7 @@ import NewsDetail from "./pages/NewsDetail";
 import SellNFT from "./pages/SellNFT";
 import WalletConnect from "./pages/WalletConnect";
 import AboutUs from "./pages/AboutUs";
+import Staking from "./pages/Staking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/sell-nft" element={<SellNFT />} />
           <Route path="/wallet" element={<WalletConnect />} />
           <Route path="/about" element={<AboutUs />} />
+          <Route path="/staking" element={<Staking />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
