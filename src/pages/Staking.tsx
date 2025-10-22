@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Coins, Package, TrendingUp, Clock, Gift, Sparkles, Zap, ArrowUp } from "lucide-react";
+import { Coins, Package, TrendingUp, Clock, Gift, Sparkles, Zap, ArrowUp, XCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import type { Session } from "@supabase/supabase-js";
 import stakingCoinHero from "@/assets/staking-coin-hero.jpg";
@@ -347,6 +347,72 @@ const Staking = () => {
     }
   };
 
+  const handleCancelStake = async (stakeId: string, type: "coin" | "nft") => {
+    if (!session) return;
+
+    if (type === "coin") {
+      const { data: stake } = await supabase
+        .from("staking_coin")
+        .select("*")
+        .eq("id", stakeId)
+        .single();
+
+      if (!stake) return;
+
+      const currentRewards = calculateRewards(stake.amount_staked, stake.apy, stake.staked_at);
+
+      // Update stake status to cancelled
+      await supabase
+        .from("staking_coin")
+        .update({ status: "cancelled" })
+        .eq("id", stakeId);
+
+      // Return staked amount + rewards to balance
+      await supabase
+        .from("profiles")
+        .update({ can_balance: (profile?.can_balance || 0) + stake.amount_staked + currentRewards })
+        .eq("id", session.user.id);
+
+      toast({
+        title: "Huỷ staking thành công! ✅",
+        description: `Đã hoàn trả ${stake.amount_staked.toLocaleString()} CAN và ${currentRewards.toFixed(2)} CAN phần thưởng.`,
+      });
+
+      fetchProfile(session.user.id);
+      fetchStakes(session.user.id);
+    } else {
+      const { data: stake } = await supabase
+        .from("staking_nft")
+        .select("*")
+        .eq("id", stakeId)
+        .single();
+
+      if (!stake) return;
+
+      const currentRewards = calculateRewards(stake.nft_value, stake.apy, stake.staked_at);
+
+      // Update stake status to cancelled
+      await supabase
+        .from("staking_nft")
+        .update({ status: "cancelled" })
+        .eq("id", stakeId);
+
+      // Add rewards to balance (NFT is returned by status change)
+      await supabase
+        .from("profiles")
+        .update({ can_balance: (profile?.can_balance || 0) + currentRewards })
+        .eq("id", session.user.id);
+
+      toast({
+        title: "Huỷ staking NFT thành công! ✅",
+        description: `NFT ${stake.nft_name} đã được trả lại và bạn nhận ${currentRewards.toFixed(2)} CAN phần thưởng.`,
+      });
+
+      fetchProfile(session.user.id);
+      fetchStakes(session.user.id);
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setSession(null);
@@ -606,14 +672,22 @@ const Staking = () => {
                                 </div>
                               </div>
 
-                              <Button
-                                className="w-full"
-                                variant="default"
-                                onClick={() => handleClaim(stake.id, "coin")}
-                              >
-                                <Gift className="h-4 w-4 mr-2" />
-                                Nhận thưởng ({currentRewards.toFixed(2)} CAN)
-                              </Button>
+                              <div className="grid grid-cols-2 gap-2">
+                                <Button
+                                  variant="default"
+                                  onClick={() => handleClaim(stake.id, "coin")}
+                                >
+                                  <Gift className="h-4 w-4 mr-2" />
+                                  Nhận thưởng
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => handleCancelStake(stake.id, "coin")}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Huỷ Staking
+                                </Button>
+                              </div>
                             </CardContent>
                           </Card>
                         );
@@ -759,14 +833,22 @@ const Staking = () => {
                                 </div>
                               </div>
 
-                              <Button
-                                className="w-full"
-                                variant="default"
-                                onClick={() => handleClaim(stake.id, "nft")}
-                              >
-                                <Gift className="h-4 w-4 mr-2" />
-                                Nhận thưởng ({currentRewards.toFixed(2)} CAN)
-                              </Button>
+                              <div className="grid grid-cols-2 gap-2">
+                                <Button
+                                  variant="default"
+                                  onClick={() => handleClaim(stake.id, "nft")}
+                                >
+                                  <Gift className="h-4 w-4 mr-2" />
+                                  Nhận thưởng
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => handleCancelStake(stake.id, "nft")}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Huỷ Staking
+                                </Button>
+                              </div>
                             </CardContent>
                           </Card>
                         );
