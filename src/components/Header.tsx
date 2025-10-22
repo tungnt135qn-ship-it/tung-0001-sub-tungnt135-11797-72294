@@ -100,11 +100,6 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
             <a href="/about" className="text-foreground/80 hover:text-primary transition-colors">
               Về chúng tôi
             </a>
-            {session && (
-              <a href="/account" className="text-foreground/80 hover:text-primary transition-colors">
-                Tài khoản
-              </a>
-            )}
           </nav>
 
           {/* Auth Buttons */}
@@ -206,11 +201,6 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
               <a href="/staking" className="text-foreground/80 hover:text-primary transition-colors py-2">
                 Staking
               </a>
-              {session && (
-                <a href="/account" className="text-foreground/80 hover:text-primary transition-colors py-2">
-                  Tài khoản
-                </a>
-              )}
               {session ? (
                 <>
                   <div className="flex items-center space-x-2 py-2 border-t border-border/50 mt-2">
