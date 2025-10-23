@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Wallet, Menu, LogOut, LogIn, Bell, Globe, User, Settings } from "lucide-react";
+import { Wallet, Menu, LogOut, LogIn, Bell, Globe, User, Settings, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface HeaderProps {
   session: Session | null;
@@ -28,8 +29,31 @@ interface UserProfile {
 export const Header = ({ session, onSignOut }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [language, setLanguage] = useState("vi");
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const notifications = [
+    { id: 1, title: "Staking thành công", message: "Bạn đã stake 1000 CAN thành công", time: "5 phút trước", unread: true },
+    { id: 2, title: "Nhận thưởng NFT", message: "Bạn đã nhận được NFT mới từ nhiệm vụ", time: "1 giờ trước", unread: true },
+    { id: 3, title: "Đầu tư hoàn tất", message: "Giai đoạn 1 đã hoàn tất với lợi nhuận 15%", time: "3 giờ trước", unread: false },
+    { id: 4, title: "Hệ thống", message: "Cập nhật tính năng mới đã có sẵn", time: "1 ngày trước", unread: false },
+  ];
+
+  const languages = [
+    { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
+    { code: "en", name: "English", flag: "🇬🇧" },
+    { code: "zh", name: "中文", flag: "🇨🇳" },
+    { code: "ja", name: "日本語", flag: "🇯🇵" },
+  ];
+
+  const handleLanguageChange = (langCode: string) => {
+    setLanguage(langCode);
+    toast({
+      title: "Đổi ngôn ngữ thành công",
+      description: `Ngôn ngữ đã được chuyển sang ${languages.find(l => l.code === langCode)?.name}`,
+    });
+  };
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -106,21 +130,66 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
           <div className="flex items-center space-x-4">
             {session ? (
               <>
-                <Button 
-                  variant="ghost"
-                  size="icon"
-                  className="hidden md:flex relative"
-                >
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hidden md:flex"
-                >
-                  <Globe className="w-5 h-5" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost"
+                      size="icon"
+                      className="hidden md:flex relative"
+                    >
+                      <Bell className="w-5 h-5" />
+                      {notifications.some(n => n.unread) && (
+                        <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-80">
+                    <DropdownMenuLabel>Thông báo</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <ScrollArea className="h-72">
+                      {notifications.map((notif) => (
+                        <div key={notif.id} className={`p-3 hover:bg-accent cursor-pointer border-b border-border/50 ${notif.unread ? 'bg-primary/5' : ''}`}>
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-semibold text-sm">{notif.title}</h4>
+                            {notif.unread && <span className="w-2 h-2 bg-primary rounded-full"></span>}
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1">{notif.message}</p>
+                          <span className="text-xs text-muted-foreground">{notif.time}</span>
+                        </div>
+                      ))}
+                    </ScrollArea>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="justify-center text-primary cursor-pointer">
+                      Xem tất cả thông báo
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hidden md:flex"
+                    >
+                      <Globe className="w-5 h-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel>Chọn ngôn ngữ</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {languages.map((lang) => (
+                      <DropdownMenuItem 
+                        key={lang.code}
+                        onClick={() => handleLanguageChange(lang.code)}
+                        className="cursor-pointer"
+                      >
+                        <span className="mr-2">{lang.flag}</span>
+                        <span className="flex-1">{lang.name}</span>
+                        {language === lang.code && <Check className="w-4 h-4 text-primary" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button 
                   variant="gradient" 
                   className="hidden md:flex"
@@ -204,12 +273,58 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
               {session ? (
                 <>
                   <div className="flex items-center space-x-2 py-2 border-t border-border/50 mt-2">
-                    <Button variant="ghost" size="icon" className="flex-1">
-                      <Bell className="w-5 h-5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="flex-1">
-                      <Globe className="w-5 h-5" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="flex-1 relative">
+                          <Bell className="w-5 h-5" />
+                          {notifications.some(n => n.unread) && (
+                            <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-80">
+                        <DropdownMenuLabel>Thông báo</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <ScrollArea className="h-72">
+                          {notifications.map((notif) => (
+                            <div key={notif.id} className={`p-3 hover:bg-accent cursor-pointer border-b border-border/50 ${notif.unread ? 'bg-primary/5' : ''}`}>
+                              <div className="flex justify-between items-start mb-1">
+                                <h4 className="font-semibold text-sm">{notif.title}</h4>
+                                {notif.unread && <span className="w-2 h-2 bg-primary rounded-full"></span>}
+                              </div>
+                              <p className="text-xs text-muted-foreground mb-1">{notif.message}</p>
+                              <span className="text-xs text-muted-foreground">{notif.time}</span>
+                            </div>
+                          ))}
+                        </ScrollArea>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="justify-center text-primary cursor-pointer">
+                          Xem tất cả thông báo
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="flex-1">
+                          <Globe className="w-5 h-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuLabel>Chọn ngôn ngữ</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {languages.map((lang) => (
+                          <DropdownMenuItem 
+                            key={lang.code}
+                            onClick={() => handleLanguageChange(lang.code)}
+                            className="cursor-pointer"
+                          >
+                            <span className="mr-2">{lang.flag}</span>
+                            <span className="flex-1">{lang.name}</span>
+                            {language === lang.code && <Check className="w-4 h-4 text-primary" />}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   <Button 
                     variant="gradient" 
