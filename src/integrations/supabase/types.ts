@@ -47,36 +47,92 @@ export type Database = {
         }
         Relationships: []
       }
+      event_registrations: {
+        Row: {
+          event_id: string
+          id: string
+          registered_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          registered_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          registered_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "news_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news_events: {
         Row: {
+          content: string | null
           created_at: string
           description: string
+          end_time: string | null
           event_date: string | null
           event_type: string
           id: string
           image_url: string | null
           is_featured: boolean | null
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          max_attendees: number | null
+          start_time: string | null
           title: string
+          zoom_link: string | null
         }
         Insert: {
+          content?: string | null
           created_at?: string
           description: string
+          end_time?: string | null
           event_date?: string | null
           event_type: string
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_attendees?: number | null
+          start_time?: string | null
           title: string
+          zoom_link?: string | null
         }
         Update: {
+          content?: string | null
           created_at?: string
           description?: string
+          end_time?: string | null
           event_date?: string | null
           event_type?: string
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          max_attendees?: number | null
+          start_time?: string | null
           title?: string
+          zoom_link?: string | null
         }
         Relationships: []
       }

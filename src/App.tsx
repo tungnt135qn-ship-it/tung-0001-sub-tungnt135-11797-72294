@@ -15,6 +15,7 @@ import NFTMarket from "./pages/NFTMarket";
 import NFTDetail from "./pages/NFTDetail";
 import Missions from "./pages/Missions";
 import AccountManagement from "./pages/AccountManagement";
+import NewsList from "./pages/NewsList";
 import NewsDetail from "./pages/NewsDetail";
 import SellNFT from "./pages/SellNFT";
 import WalletConnect from "./pages/WalletConnect";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/nft/:id" element={<NFTDetail />} />
           <Route path="/missions" element={<Missions />} />
           <Route path="/account" element={<AccountManagement />} />
+          <Route path="/news" element={<NewsList />} />
           <Route path="/news/:id" element={<NewsDetail />} />
           <Route path="/sell-nft" element={<SellNFT />} />
           <Route path="/wallet" element={<WalletConnect />} />

@@ -121,6 +121,9 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
             <a href="/staking" className="text-foreground/80 hover:text-primary transition-colors">
               Staking
             </a>
+            <a href="/news" className="text-foreground/80 hover:text-primary transition-colors">
+              Tin tức
+            </a>
             <a href="/about" className="text-foreground/80 hover:text-primary transition-colors">
               Về chúng tôi
             </a>
@@ -269,6 +272,9 @@ export const Header = ({ session, onSignOut }: HeaderProps) => {
               </a>
               <a href="/staking" className="text-foreground/80 hover:text-primary transition-colors py-2">
                 Staking
+              </a>
+              <a href="/news" className="text-foreground/80 hover:text-primary transition-colors py-2">
+                Tin tức
               </a>
               {session ? (
                 <>
